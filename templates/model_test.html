@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Model Test{% endblock %}
+
+{% block content %}
+<style>
+    .test-results {
+        margin-top: 20px;
+    }
+    .test-case {
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        background-color: #f8f9fa;
+    }
+    .test-pass {
+        border-left: 5px solid #28a745;
+    }
+    .test-fail {
+        border-left: 5px solid #dc3545;
+    }
+    .audio-sample {
+        margin-top: 10px;
+    }
+</style>
+
+<h2>🧪 Model Testing</h2>
+
+<div class="container">
+    <div class="alert alert-info">
+        This page tests the scream detection model with known audio samples.
+    </div>
+
+    <div class="test-results">
+        {% for label, result in results.items() %}
+        <div class="test-case {% if result.expected == result.predicted %}test-pass{% else %}test-fail{% endif %}">
+            <h5>Test Case: {{ label|upper }}</h5>
+            <p><strong>Expected:</strong> {{ result.expected }}</p>
+            <p><strong>Predicted:</strong> {{ result.predicted }}</p>
+            <p><strong>Confidence:</strong> {{ result.confidence }}%</p>
+            <div class="audio-sample">
+                <audio controls>
+                    <source src="{{ url_for('static', filename='test_samples/' + label + '.wav') }}" type="audio/wav">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+            <p class="{% if result.expected == result.predicted %}text-success{% else %}text-danger{% endif %}">
+                {% if result.expected == result.predicted %}✅ PASSED{% else %}❌ FAILED{% endif %}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+        <button id="runTests" class="btn btn-secondary">Run Tests Again</button>
+    </div>
+</div>
+
+<script>
+    document.getElementById('runTests').addEventListener('click', function() {
+        window.location.reload();
+    });
+</script>
+{% endblock %}

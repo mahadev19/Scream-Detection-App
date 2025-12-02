@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - ScreamDetect{% endblock %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Sidebar -->
+
+    <div class="sidebar">
+        <h1 class="logo">ScreamDetect</h1>
+        <nav>
+            <ul>
+                <li class="{% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <a href="{{ url_for('dashboard') }}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li class="{% if request.endpoint == 'live_detection' %}active{% endif %}">
+                    <a href="{{ url_for('live_detection') }}">
+                        <i class="fas fa-microphone"></i> Live Detection
+                    </a>
+                </li>
+                <li class="{% if request.endpoint == 'file_upload' %}active{% endif %}">
+                    <a href="{{ url_for('file_upload') }}">
+                        <i class="fas fa-upload"></i> File Upload
+                    </a>
+                </li>
+                <li class="{% if request.endpoint == 'login' %}active{% endif %}">
+                    <a href="{{ url_for('login') }}">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Login Content -->
+    <div class="main-content">
+        <div class="signup-container">
+            <div class="signup-header">
+                <h1>Welcome back!</h1>
+                <p>Log in to access your dashboard and scream detection features.</p>
+                <p class="login-link">Don't have an account? <a href="{{ url_for('signup') }}">Sign up here</a></p>
+            </div>
+
+            <div class="signup-form">
+                <div class="form-header">
+                    <h2>Login</h2>
+                    
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <form method="POST">
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" name="password" placeholder="Password" required>
+                    </div>
+                    <button type="submit" class="signup-btn">Login</button>
+                </form>
+
+                <div class="divider">
+                    <span>or login with</span>
+                </div>
+
+                <div class="social-login">
+                    <button class="social-btn">
+                        <i class="fab fa-google"></i> Google
+                    </button>
+                    <button class="social-btn">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include same styles as in signup.html -->
+<style>
+    .app-container {
+        display: flex;
+        min-height: 100vh;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #2c3e50;
+        color: white;
+        padding: 20px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .sidebar nav a i {
+        margin-right: 10px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .sidebar nav ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar nav li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar nav a {
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 8px 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar nav li.active a {
+        background-color: #1abc9c;
+    }
+
+    .sidebar nav a:hover {
+        background-color: #34495e;
+    }
+
+    .main-content {
+        flex: 1;
+        background-color: #f5f7fa;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .signup-container {
+        display: flex;
+        max-width: 900px;
+        width: 100%;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .signup-header {
+        flex: 1;
+        padding: 40px;
+        background-color: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .signup-header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+
+    .signup-header p {
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .login-link {
+        margin-top: auto;
+    }
+
+    .login-link a {
+        color: #1abc9c;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .signup-form {
+        flex: 1;
+        padding: 40px;
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .form-header h2 {
+        font-size: 1.8rem;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-header p {
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+        border-color: #1abc9c;
+        outline: none;
+    }
+
+    .signup-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #1abc9c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-bottom: 1.5rem;
+        transition: background-color 0.3s;
+    }
+
+    .signup-btn:hover {
+        background-color: #16a085;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: #999;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .divider::before {
+        margin-right: 1rem;
+    }
+
+    .divider::after {
+        margin-left: 1rem;
+    }
+
+    .social-login {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .social-btn {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: background-color 0.3s;
+    }
+
+    .social-btn:hover {
+        background-color: #f8f9fa;
+    }
+
+    @media (max-width: 768px) {
+        .app-container {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            padding: 15px;
+        }
+
+        .sidebar nav ul {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sidebar nav li {
+            margin-bottom: 0;
+        }
+
+        .signup-container {
+            flex-direction: column;
+        }
+
+        .social-login {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

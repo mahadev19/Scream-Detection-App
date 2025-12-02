@@ -1,0 +1,685 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Page Title - ScreamDetect{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <h1 class="logo">ScreamDetect</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('live_detection') }}"><i class="fas fa-microphone"></i> Live Detection</a></li>
+                <li><a href="{{ url_for('file_upload') }}"><i class="fas fa-file-upload"></i> File Upload</a></li>
+                <li><a href="{{ url_for('signup') }}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+
+                {% if 'user_id' in session %}
+                <li class="logout-item">
+                    <a href="{{ url_for('logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Replace this section with your page-specific content -->
+        <h2 class="mb-4">🎤 Live Scream Detection</h2>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Detection Control Card -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4 class="mb-0">Real-time Monitoring</h4>
+                                <div id="recordingStatus">
+                                    <span class="status-indicator status-inactive"></span>
+                                    <span>Not Recording</span>
+                                </div>
+                            </div>
+
+                            <!-- Location Status -->
+                            <div id="locationStatus" class="alert alert-info mb-3">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="locationText">Location: Waiting for permission...</span>
+                            </div>
+
+                            <!-- Audio Visualizer -->
+                            <div class="visualizer-container mb-3">
+                                <canvas id="audioVisualizer"></canvas>
+                            </div>
+
+                            <!-- Control Buttons -->
+                            <div class="d-flex gap-2 mb-4">
+                                <button id="startBtn" class="btn btn-success btn-lg flex-grow-1">
+                                    <i class="fas fa-microphone"></i> Start Detection
+                                </button>
+                                <button id="stopBtn" class="btn btn-danger btn-lg flex-grow-1" disabled>
+                                    <i class="fas fa-stop"></i> Stop Detection
+                                </button>
+                            </div>
+
+                            <!-- Detection Results -->
+                            <div id="detectionResults" class="card mb-3" style="display: none;">
+                                <div class="card-body">
+                                    <h5 class="card-title">Live Analysis</h5>
+                                    <div class="mb-2">
+                                        <strong>Status:</strong>
+                                        <span id="detectionStatus" class="badge bg-secondary">Inactive</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Confidence:</strong>
+                                        <div class="progress" style="height: 25px;">
+                                            <div id="confidenceBar" class="progress-bar progress-bar-striped"
+                                                role="progressbar" style="width: 0%"></div>
+                                        </div>
+                                        <div class="text-end mt-1">
+                                            <span id="confidenceValue" class="fw-bold">0</span>%
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-danger detection-alert d-flex align-items-center"
+                                        id="lastDetectionAlert" style="display: none;">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <span>Scream detected! Alert sent via WhatsApp.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alert Settings Card -->
+                    <div class="card alert-settings-card">
+                        <div class="card-body">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Alert Settings</span>
+                                <i class="fas fa-bell text-primary"></i>
+                            </h5>
+
+                            <div class="mb-3">
+                                <label for="alertNumber" class="form-label">WhatsApp Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">+91</span>
+                                    <input type="tel" class="form-control" id="alertNumber"
+                                        placeholder="Enter 10-digit mobile number"
+                                        value="{{ session.get('user_phone', '') }}">
+                                    <button class="btn btn-outline-primary test-alert-btn" type="button"
+                                        id="sendTestAlert">
+                                        <i class="fas fa-paper-plane"></i> Test Alert
+                                    </button>
+                                </div>
+                                <div class="form-text">Alerts will be sent to this number when screams are detected
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Alert Threshold</label>
+                                <div class="d-flex align-items-center">
+                                    <input type="range" class="form-range flex-grow-1 me-3" id="confidenceThreshold"
+                                        min="50" max="95" value="70">
+                                    <span id="thresholdValue" class="badge bg-primary">70%</span>
+                                </div>
+                                <div class="form-text">Higher values reduce false alarms but may miss some screams</div>
+                            </div>
+
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="enableAlerts" checked>
+                                <label class="form-check-label" for="enableAlerts">Enable WhatsApp Alerts</label>
+                            </div>
+
+                            <button id="saveAlertSettings" class="btn btn-primary w-100">
+                                <i class="fas fa-save me-2"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Detection Log Card -->
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title d-flex justify-content-between align-items-center">
+                                <span>Detection Log</span>
+                                <span class="badge bg-primary" id="detectionCount">0</span>
+                            </h5>
+
+                            <div class="d-flex justify-content-between mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="locationToggle" checked>
+                                    <label class="form-check-label" for="locationToggle">Share Location</label>
+                                </div>
+                                <button id="clearLogBtn" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+
+                            <div id="detectionLog" class="list-group" style="max-height: 500px; overflow-y: auto;">
+                                <div class="list-group-item list-group-item-light text-center py-4">
+                                    <i class="fas fa-wave-square fa-2x mb-2 text-muted"></i>
+                                    <p class="mb-0">No detections yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // DOM Elements
+            const elements = {
+                startBtn: document.getElementById('startBtn'),
+                stopBtn: document.getElementById('stopBtn'),
+                recordingStatus: document.getElementById('recordingStatus'),
+                detectionResults: document.getElementById('detectionResults'),
+                detectionStatus: document.getElementById('detectionStatus'),
+                confidenceBar: document.getElementById('confidenceBar'),
+                confidenceValue: document.getElementById('confidenceValue'),
+                lastDetectionAlert: document.getElementById('lastDetectionAlert'),
+                detectionLog: document.getElementById('detectionLog'),
+                visualizerCanvas: document.getElementById('audioVisualizer'),
+                visualizerCtx: document.getElementById('audioVisualizer').getContext('2d'),
+                locationText: document.getElementById('locationText'),
+                locationToggle: document.getElementById('locationToggle'),
+                locationStatus: document.getElementById('locationStatus'),
+                alertNumber: document.getElementById('alertNumber'),
+                saveAlertSettings: document.getElementById('saveAlertSettings'),
+                confidenceThreshold: document.getElementById('confidenceThreshold'),
+                thresholdValue: document.getElementById('thresholdValue'),
+                enableAlerts: document.getElementById('enableAlerts'),
+                sendTestAlert: document.getElementById('sendTestAlert'),
+                clearLogBtn: document.getElementById('clearLogBtn'),
+                detectionCount: document.getElementById('detectionCount')
+            };
+
+            // State variables
+            let state = {
+                animationId: null,
+                lastScreamTime: null,
+                currentLocation: null,
+                locationWatchId: null,
+                threshold: 70,
+                alertsEnabled: true,
+                isTesting: false
+            };
+
+            // Initialize visualizer
+            elements.visualizerCanvas.width = elements.visualizerCanvas.offsetWidth;
+            elements.visualizerCanvas.height = elements.visualizerCanvas.offsetHeight;
+
+            // Initialize from saved settings
+            if (localStorage.getItem('alertThreshold')) {
+                state.threshold = parseInt(localStorage.getItem('alertThreshold'));
+                elements.confidenceThreshold.value = state.threshold;
+                elements.thresholdValue.textContent = `${state.threshold}%`;
+            }
+
+            if (localStorage.getItem('alertsEnabled') !== null) {
+                state.alertsEnabled = localStorage.getItem('alertsEnabled') === 'true';
+                elements.enableAlerts.checked = state.alertsEnabled;
+            }
+
+            // Update visualizer with intensity data
+            function updateVisualizer(intensityData) {
+                if (!intensityData || intensityData.length === 0) return;
+
+                elements.visualizerCtx.clearRect(0, 0, elements.visualizerCanvas.width, elements.visualizerCanvas.height);
+
+                const barWidth = elements.visualizerCanvas.width / intensityData.length;
+                const maxHeight = elements.visualizerCanvas.height;
+
+                intensityData.forEach((value, i) => {
+                    const barHeight = value * maxHeight * 2;
+                    const x = i * barWidth;
+                    const y = maxHeight - barHeight;
+
+                    const isRecentScream = state.lastScreamTime && (Date.now() - state.lastScreamTime < 2000);
+                    elements.visualizerCtx.fillStyle = isRecentScream ? '#dc3545' : '#007bff';
+                    elements.visualizerCtx.fillRect(x, y, barWidth - 1, barHeight);
+                });
+
+                state.animationId = requestAnimationFrame(() => updateVisualizer(intensityData));
+            }
+
+            // Initialize location services
+            function initLocation() {
+                if (!navigator.geolocation) {
+                    elements.locationText.textContent = "Geolocation not supported by your browser";
+                    return;
+                }
+
+                const options = {
+                    enableHighAccuracy: true,
+                    maximumAge: 30000,
+                    timeout: 5000
+                };
+
+                state.locationWatchId = navigator.geolocation.watchPosition(
+                    position => {
+                        state.currentLocation = {
+                            latitude: position.coords.latitude.toFixed(6),
+                            longitude: position.coords.longitude.toFixed(6),
+                            accuracy: position.coords.accuracy
+                        };
+
+                        elements.locationText.innerHTML = `
+                <i class="fas fa-check-circle text-success"></i> Location Active | 
+                Accuracy: ${state.currentLocation.accuracy.toFixed(1)} meters
+                <br><a href="https://www.google.com/maps?q=${state.currentLocation.latitude},${state.currentLocation.longitude}" 
+                target="_blank" class="text-decoration-none">
+                <i class="fas fa-external-link-alt"></i> View on Map</a>
+            `;
+                        elements.locationStatus.className = 'alert alert-success mb-3';
+                    },
+                    error => {
+                        console.error("Geolocation error:", error);
+                        elements.locationText.innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i> Location access denied';
+                        elements.locationStatus.className = 'alert alert-warning mb-3';
+                        state.currentLocation = null;
+                    },
+                    options
+                );
+            }
+
+            // Save alert settings
+            elements.saveAlertSettings.addEventListener('click', async () => {
+                const phoneNumber = elements.alertNumber.value.trim();
+
+                if (!phoneNumber.match(/^\d{10}$/)) {
+                    showAlert('Please enter a valid 10-digit phone number', 'danger');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/live_detection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `action=save_number&phone_number=${phoneNumber}`
+                    });
+
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        showAlert('Alert settings saved successfully!', 'success');
+                    } else {
+                        showAlert('Error: ' + data.message, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error saving settings:', error);
+                    showAlert('Failed to save settings', 'danger');
+                }
+            });
+
+            // Test alert button
+            elements.sendTestAlert.addEventListener('click', async () => {
+                if (state.isTesting) return;
+
+                const phoneNumber = elements.alertNumber.value.trim();
+
+                if (!phoneNumber.match(/^\d{10}$/)) {
+                    showAlert('Please enter a valid 10-digit phone number first', 'danger');
+                    return;
+                }
+
+                state.isTesting = true;
+                elements.sendTestAlert.disabled = true;
+                elements.sendTestAlert.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+                try {
+                    const response = await fetch('/send_test_alert', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            phone_number: phoneNumber
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        showAlert('Test alert sent successfully!', 'success');
+
+                        // Visual feedback
+                        elements.lastDetectionAlert.style.display = 'flex';
+                        elements.lastDetectionAlert.classList.add('scream-animation');
+                        setTimeout(() => {
+                            elements.lastDetectionAlert.classList.remove('scream-animation');
+                        }, 500);
+
+                        // Add to log
+                        addDetectionToLog({
+                            confidence: 92.5,
+                            location: state.currentLocation ?
+                                `https://www.google.com/maps?q=${state.currentLocation.latitude},${state.currentLocation.longitude}` :
+                                "Test location"
+                        });
+                    } else {
+                        showAlert('Error: ' + data.message, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Error sending test alert:', error);
+                    showAlert('Failed to send test alert', 'danger');
+                } finally {
+                    state.isTesting = false;
+                    elements.sendTestAlert.disabled = false;
+                    elements.sendTestAlert.innerHTML = '<i class="fas fa-paper-plane"></i> Test Alert';
+                }
+            });
+
+            // Start live detection
+            elements.startBtn.addEventListener('click', async () => {
+                try {
+                    if (elements.locationToggle.checked && !state.locationWatchId) {
+                        initLocation();
+                    }
+
+                    const response = await fetch('/live_detection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'action=start'
+                    });
+
+                    if (response.ok) {
+                        elements.startBtn.disabled = true;
+                        elements.stopBtn.disabled = false;
+                        elements.recordingStatus.innerHTML = '<span class="status-indicator status-active"></span><span>Recording</span>';
+                        elements.detectionResults.style.display = 'block';
+                        pollDetectionStatus();
+                    }
+                } catch (error) {
+                    console.error('Error starting detection:', error);
+                    showAlert('Failed to start detection', 'danger');
+                }
+            });
+
+            // Stop live detection
+            elements.stopBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/live_detection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'action=stop'
+                    });
+
+                    if (response.ok) {
+                        elements.startBtn.disabled = false;
+                        elements.stopBtn.disabled = true;
+                        elements.recordingStatus.innerHTML = '<span class="status-indicator status-inactive"></span><span>Not Recording</span>';
+
+                        if (state.animationId) {
+                            cancelAnimationFrame(state.animationId);
+                            state.animationId = null;
+                        }
+                        elements.visualizerCtx.clearRect(0, 0, elements.visualizerCanvas.width, elements.visualizerCanvas.height);
+
+                        // Clear location tracking if active
+                        if (state.locationWatchId) {
+                            navigator.geolocation.clearWatch(state.locationWatchId);
+                            state.locationWatchId = null;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error stopping detection:', error);
+                    showAlert('Failed to stop detection', 'danger');
+                }
+            });
+
+            // Update threshold display
+            elements.confidenceThreshold.addEventListener('input', () => {
+                state.threshold = parseInt(elements.confidenceThreshold.value);
+                elements.thresholdValue.textContent = `${state.threshold}%`;
+                localStorage.setItem('alertThreshold', state.threshold);
+            });
+
+            // Toggle alerts
+            elements.enableAlerts.addEventListener('change', () => {
+                state.alertsEnabled = elements.enableAlerts.checked;
+                localStorage.setItem('alertsEnabled', state.alertsEnabled);
+            });
+
+            // Clear log
+            elements.clearLogBtn.addEventListener('click', () => {
+                elements.detectionLog.innerHTML = `
+        <div class="list-group-item list-group-item-light text-center py-4">
+            <i class="fas fa-wave-square fa-2x mb-2 text-muted"></i>
+            <p class="mb-0">No detections yet</p>
+        </div>
+    `;
+                elements.detectionCount.textContent = '0';
+            });
+
+            // Handle location toggle
+            elements.locationToggle.addEventListener('change', () => {
+                if (elements.locationToggle.checked) {
+                    initLocation();
+                } else {
+                    if (state.locationWatchId) {
+                        navigator.geolocation.clearWatch(state.locationWatchId);
+                        state.locationWatchId = null;
+                    }
+                    state.currentLocation = null;
+                    elements.locationText.textContent = "Location: Sharing disabled";
+                    elements.locationStatus.className = 'alert alert-secondary mb-3';
+                }
+            });
+
+            // Poll for detection status updates
+            async function pollDetectionStatus() {
+                try {
+                    const formData = new URLSearchParams();
+                    formData.append('action', 'status');
+
+                    if (elements.locationToggle.checked && state.currentLocation) {
+                        formData.append('latitude', state.currentLocation.latitude);
+                        formData.append('longitude', state.currentLocation.longitude);
+                    }
+
+                    const response = await fetch('/live_detection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.is_recording) {
+                        // Update detection status
+                        if (data.scream_detected) {
+                            elements.detectionStatus.textContent = 'SCREAM DETECTED';
+                            elements.detectionStatus.className = 'badge bg-danger';
+                            state.lastScreamTime = Date.now();
+                            elements.lastDetectionAlert.style.display = 'flex';
+                            elements.lastDetectionAlert.classList.add('scream-animation');
+                            setTimeout(() => {
+                                elements.lastDetectionAlert.classList.remove('scream-animation');
+                            }, 500);
+
+                            if (data.confidence > state.threshold) {
+                                addDetectionToLog(data);
+                            }
+                        } else {
+                            elements.detectionStatus.textContent = 'No scream detected';
+                            elements.detectionStatus.className = 'badge bg-success';
+                            elements.lastDetectionAlert.style.display = 'none';
+                        }
+
+                        // Update confidence display
+                        const confidence = data.confidence.toFixed(1);
+                        elements.confidenceBar.style.width = `${confidence}%`;
+                        elements.confidenceBar.className = `progress-bar progress-bar-striped ${data.scream_detected ? 'bg-danger' : 'bg-success'}`;
+                        elements.confidenceValue.textContent = confidence;
+
+                        // Update visualizer
+                        updateVisualizer(data.voice_intensity);
+
+                        // Continue polling
+                        setTimeout(pollDetectionStatus, 300);
+                    }
+                } catch (error) {
+                    console.error('Error polling detection status:', error);
+                    setTimeout(pollDetectionStatus, 1000);
+                }
+            }
+
+            // Add detection to log
+            function addDetectionToLog(data) {
+                const logEntries = elements.detectionLog.querySelectorAll('.list-group-item');
+                const shouldAddEntry = logEntries.length === 1 &&
+                    logEntries[0].classList.contains('list-group-item-light');
+
+                if (shouldAddEntry) {
+                    elements.detectionLog.innerHTML = '';
+                }
+
+                const logEntry = document.createElement('div');
+                logEntry.className = 'list-group-item list-group-item-danger';
+
+                const timeStr = new Date().toLocaleTimeString();
+                const locationInfo = data.location && data.location !== 'Location unavailable' ?
+                    `<div class="mt-2">
+            <a href="${data.location}" target="_blank" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-map-marker-alt"></i> View Location
+            </a>
+        </div>` : '';
+
+                logEntry.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <div class="fw-bold">${data.confidence > state.threshold ? 'Scream Detected' : 'Possible Scream'}</div>
+                <small class="text-muted">${timeStr}</small>
+            </div>
+            <span class="badge ${data.confidence > state.threshold ? 'bg-danger' : 'bg-warning'} rounded-pill">
+                ${data.confidence.toFixed(1)}%
+            </span>
+        </div>
+        ${locationInfo}
+    `;
+                elements.detectionLog.prepend(logEntry);
+
+                // Update detection count
+                const count = shouldAddEntry ? 1 : elements.detectionLog.children.length;
+                elements.detectionCount.textContent = count;
+            }
+
+            // Show temporary alert
+            function showAlert(message, type) {
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+                alert.style.top = '20px';
+                alert.style.right = '20px';
+                alert.style.zIndex = '1000';
+                alert.style.maxWidth = '400px';
+                alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+                document.body.appendChild(alert);
+
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 150);
+                }, 3000);
+            }
+
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                elements.visualizerCanvas.width = elements.visualizerCanvas.offsetWidth;
+                elements.visualizerCanvas.height = elements.visualizerCanvas.offsetHeight;
+            });
+
+            // Initialize
+            updateVisualizer([]);
+
+            // Check if we have location permission on page load
+            if (elements.locationToggle.checked) {
+                initLocation();
+            }
+        </script>
+        
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #2c3e50;
+        color: white;
+        padding: 20px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .sidebar nav ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar nav li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar nav a {
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 8px 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar nav li.active a,
+    .sidebar nav a:hover {
+        background-color: #1abc9c;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 40px;
+        background-color: #f5f7fa;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #1abc9c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #16a085;
+    }
+</style>
+
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Page Title - ScreamDetect{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <h1 class="logo">ScreamDetect</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="{{ url_for('live_detection') }}"><i class="fas fa-microphone"></i> Live Detection</a></li>
+                <li><a href="{{ url_for('file_upload') }}"><i class="fas fa-file-upload"></i> File Upload</a></li>
+                <li><a href="{{ url_for('signup') }}"><i class="fas fa-user-plus"></i> Sign Up</a></li>
+
+                {% if 'user_id' in session %}
+                <li class="logout-item">
+                    <a href="{{ url_for('logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </li>
+                {% else %}
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Replace this section with your page-specific content -->
+        
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+    .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .sidebar {
+        width: 250px;
+        background-color: #2c3e50;
+        color: white;
+        padding: 20px;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .sidebar nav ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .sidebar nav li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar nav a {
+        color: white;
+        text-decoration: none;
+        display: block;
+        padding: 8px 10px;
+        border-radius: 4px;
+        transition: background-color 0.3s;
+    }
+
+    .sidebar nav li.active a,
+    .sidebar nav a:hover {
+        background-color: #1abc9c;
+    }
+
+    .main-content {
+        flex: 1;
+        padding: 40px;
+        background-color: #f5f7fa;
+    }
+
+    button {
+        padding: 10px 20px;
+        background-color: #1abc9c;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #16a085;
+    }
+</style>
+
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+{% endblock %}
