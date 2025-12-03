@@ -43,7 +43,7 @@ A Flask-based web application that detects screams from audio (file uploads and 
 1. Clone the repo
 
 ```bash
-git clone <repo-url>
+git clone <https://github.com/mahadev19/Scream-Detection-App>
 cd scream-detection-app
 ```
 
@@ -233,3 +233,28 @@ This project is licensed under the MIT License — change as needed.
 ## Contact
 
 If you need help customizing the README or adding CI/CD, send me details about how you run the app and I will update the docs.
+Mahadev Bharat Pandharpote
+
+Contact : gmail:- pandmahadev120@gmail.com
+
+instagram :- https://www.instagram.com/mahadev_p19/
+
+linkedin :- https://www.linkedin.com/in/mahadev-pandharpote-coder-developer/
+
+some Screenshots: 
+Lgin/Signup
+![d48604e3-0579-4272-a361-744b6ef1007c](https://github.com/user-attachments/assets/61d137a7-788c-4ac2-9200-5a4908a42f55)
+![30997500-ae27-4307-a853-3c68f88cd191](https://github.com/user-attachments/assets/e3e0d781-0ba8-4e79-b15e-750ab989d3f4)
+Dashboard
+![1b5be47e-4300-40ed-ac91-245b8e056c31](https://github.com/user-attachments/assets/d3a58c18-a6ba-4677-b423-2ed97adb2201)
+Live Detection
+![cc0cca32-f1fc-4dfa-982f-1a7cc8f4d878](https://github.com/user-attachments/assets/534b6740-f9b6-49be-87a3-599fd141476c)
+![682b2f2d-5b68-4959-873c-d6631deca01c](https://github.com/user-attachments/assets/2f761747-f6b9-44b2-bdb9-15b218ccd5e8)
+![b343f27d-3555-40fa-a75b-b0056df3b6cb](https://github.com/user-attachments/assets/d18f4d23-4d48-4d12-9509-d725c5db2af3)
+File Upload
+![3f7717b5-e54d-4c79-bf3c-13b8f0cb1a36](https://github.com/user-attachments/assets/056f139b-1f46-4c8e-8789-fce2b83b6684)
+![0569c38a-574a-4721-94cd-9c43ca34d4fd](https://github.com/user-attachments/assets/00103865-8858-4094-863e-1981a616bfa6)
+
+
+
+
