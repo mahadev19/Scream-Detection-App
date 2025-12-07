@@ -237,9 +237,9 @@ Mahadev Bharat Pandharpote
 
 Contact : gmail:- pandmahadev120@gmail.com
 
-instagram :- https://www.instagram.com/mahadev_p19/
+linkedin :- https://www.linkedin.com/in/mahadev-data-scientist/
 
-linkedin :- https://www.linkedin.com/in/mahadev-pandharpote-coder-developer/
+twitter : - https://x.com/Mahadev_Py
 
 some Screenshots: 
 Lgin/Signup
